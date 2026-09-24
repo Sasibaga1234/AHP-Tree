@@ -121,7 +121,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import type { AHPNode } from '../types/ahp'
-import { validateTextDsl, parseTextDsl, serializeToTextDsl } from '../ahp/textDsl'
+import { validateTextDsl, parseTextDsl, serializeToTextDsl, applyStableIds } from '../ahp/textDsl'
 import { useI18n } from '../i18n'
 import { CheckCircle2, AlertTriangle, HelpCircle } from 'lucide-vue-next'
 
@@ -150,7 +150,8 @@ const onTextInput = () => {
   validation.value = result
 
   if (result.isValid) {
-    const newGoal = parseTextDsl(rawText.value)
+    // Keep previous IDs so existing pairwise judgments survive text edits.
+    const newGoal = applyStableIds(props.goal, parseTextDsl(rawText.value))
     emit('update:goal', newGoal)
   }
 }

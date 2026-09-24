@@ -37,6 +37,7 @@ export default {
   },
   actions: {
     exportJson: 'Экспорт JSON',
+    exportExcel: 'Экспорт отчёта Excel',
     importJson: 'Импорт JSON',
     resetDefault: 'Сбросить к примеру',
     nextComparison: 'Далее: Парные сравнения',
@@ -51,14 +52,29 @@ export default {
     importSuccess: 'Файл модели AHP успешно импортирован!',
     importError: 'Ошибка чтения файла. Импортируйте корректный JSON файл AHP.',
   },
+  exportDialog: {
+    title: 'Сохранить файл решения',
+    description: 'Файл содержит иерархию, все оценки и снимок результата. После импорта расчёт выполняется заново.',
+    placeholder: 'Введите имя файла',
+    cancel: 'Отмена',
+    confirm: 'Экспорт JSON',
+  },
+  excelDialog: {
+    title: 'Экспорт отчёта Excel',
+    description: 'Создаются три листа: иерархия, оценки и формулы, итоговый отчёт.',
+    fileName: 'Имя файла',
+    reportLanguage: 'Язык отчёта',
+    cancel: 'Отмена',
+    confirm: 'Экспорт Excel',
+    exportError: 'Ошибка экспорта Excel. Попробуйте ещё раз.',
+  },
   tree: {
     title: 'Дерево целей и критериев (Goal & Criteria Hierarchy)',
     desc: 'Корень — Уровень цели. Поддеревья — Уровень критериев и подкритериев.',
     doubleClickHint: 'Двойной клик для редактирования названия',
     alternativesTitle: 'Уровень альтернатив (Alternatives)',
-    alternativesCount: '{count} вариантов',
-    altPlaceholder: 'Например: Вариант A / Модель 1',
     altMinWarning: '⚠ Для парного сравнения AHP требуется минимум 2 альтернативы.',
+    optionPrefix: 'Вариант',
   },
   comparison: {
     title: 'Парные сравнения',
@@ -83,6 +99,8 @@ export default {
     crPassed: 'Принято',
     crDeviation: 'Отклонение согласованности',
     crWarningText: '⚠ Отношение согласованности (CR = {cr} > 0.10): Матрица содержит логические противоречия. Рекомендуется пересмотреть оценки.',
+    repairSuggestion: 'Проверьте «{itemA} / {itemB}»: сейчас {current}, а остальные оценки дают {suggested}.',
+    applyRepair: 'Применить',
     minItemsWarning: '⚠ Менее 2 элементов. Парное сравнение не требуется.',
   },
   results: {

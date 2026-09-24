@@ -37,6 +37,7 @@ export default {
   },
   actions: {
     exportJson: 'Export JSON',
+    exportExcel: 'Export Excel report',
     importJson: 'Import JSON',
     resetDefault: 'Reset Example Template',
     nextComparison: 'Next: Pairwise Comparison',
@@ -51,14 +52,29 @@ export default {
     importSuccess: 'AHP JSON model file imported successfully!',
     importError: 'File parsing failed. Please import a valid AHP JSON model file.',
   },
+  exportDialog: {
+    title: 'Save decision file',
+    description: 'The file includes the hierarchy, all judgments, and a result snapshot. Results are recalculated after import.',
+    placeholder: 'Enter file name',
+    cancel: 'Cancel',
+    confirm: 'Export JSON',
+  },
+  excelDialog: {
+    title: 'Export Excel decision report',
+    description: 'Creates three worksheets for the hierarchy, ratings and formulas, and the final report.',
+    fileName: 'File name',
+    reportLanguage: 'Report language',
+    cancel: 'Cancel',
+    confirm: 'Export Excel',
+    exportError: 'Excel export failed. Please try again.',
+  },
   tree: {
     title: 'Goal & Criteria Tree (Goal & Criteria Hierarchy)',
     desc: 'The root is the Goal Layer. Children nodes represent Criteria & Sub-criteria layers.',
     doubleClickHint: 'Double-click or click edit icon to rename node',
     alternativesTitle: 'Alternatives Layer (Options)',
-    alternativesCount: '{count} options',
-    altPlaceholder: 'e.g., Option A / Model 1',
     altMinWarning: '⚠ AHP pairwise comparison requires at least 2 alternatives in the Alternatives Layer.',
+    optionPrefix: 'Option',
   },
   comparison: {
     title: 'Pairwise Comparisons',
@@ -83,6 +99,8 @@ export default {
     crPassed: 'Passed',
     crDeviation: 'High Consistency Deviation',
     crWarningText: '⚠ Consistency Ratio (CR = {cr} > 0.10): Judgment matrix contains logical inconsistencies. Consider reviewing ratings.',
+    repairSuggestion: 'Review “{itemA} / {itemB}”: it is {current}, while the other judgments imply {suggested}.',
+    applyRepair: 'Apply suggestion',
     minItemsWarning: '⚠ Fewer than 2 items under this node. Pairwise comparison is not needed.',
   },
   results: {

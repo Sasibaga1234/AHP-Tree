@@ -115,8 +115,21 @@
 
       <div v-if="!getMatrixResult(target).isConsistent" class="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-800 flex items-start gap-2">
         <AlertTriangle class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-        <div>
-          {{ t('comparison.crWarningText', { cr: getMatrixResult(target).consistencyRatio.toFixed(3) }) }}
+        <div class="space-y-2">
+          <div>{{ t('comparison.crWarningText', { cr: getMatrixResult(target).consistencyRatio.toFixed(3) }) }}</div>
+          <div v-if="getRepairSuggestion(target)" class="flex flex-wrap items-center gap-2">
+            <span>
+              {{ t('comparison.repairSuggestion', {
+                itemA: getItemName(target.items, getRepairSuggestion(target)!.itemAId),
+                itemB: getItemName(target.items, getRepairSuggestion(target)!.itemBId),
+                current: formatMatrixValue(getRepairSuggestion(target)!.currentValue),
+                suggested: formatMatrixValue(getRepairSuggestion(target)!.suggestedValue),
+              }) }}
+            </span>
+            <button @click="applyRepair(target)" class="px-2.5 py-1 rounded-md bg-amber-600 text-white font-semibold hover:bg-amber-700 transition">
+              {{ t('comparison.applyRepair') }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -126,6 +139,7 @@
 <script setup lang="ts">
 import type { PairwiseComparison } from '../types/ahp'
 import { calculateMatrixResult } from '../ahp/ahp'
+import { suggestConsistencyRepair } from '../ahp/consistency'
 import { parseMatrixValue, formatMatrixValue } from '../ahp/matrix'
 import { useI18n } from '../i18n'
 import { AlertTriangle, CheckCircle2 } from 'lucide-vue-next'
@@ -144,6 +158,20 @@ const { t } = useI18n()
 const getMatrixResult = (target: { id: string; items: { id: string; name: string }[] }) => {
   const comps = props.comparisons[target.id] || []
   return calculateMatrixResult(target.items, comps)
+}
+
+const getItemName = (items: { id: string; name: string }[], id: string) =>
+  items.find((item) => item.id === id)?.name || id
+
+const getRepairSuggestion = (target: { id: string; items: { id: string; name: string }[] }) => {
+  const result = getMatrixResult(target)
+  return result.isConsistent ? null : suggestConsistencyRepair(result.matrix, target.items.map((item) => item.id))
+}
+
+const applyRepair = (target: { id: string; items: { id: string; name: string }[] }) => {
+  const suggestion = getRepairSuggestion(target)
+  if (!suggestion) return
+  onCellInput(target.id, suggestion.itemAId, suggestion.itemBId, String(suggestion.suggestedValue))
 }
 
 const getCellValue = (targetId: string, itemAId: string, itemBId: string): number => {

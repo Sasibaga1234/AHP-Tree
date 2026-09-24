@@ -139,6 +139,36 @@ export function parseTextDsl(text: string): AHPNode {
 }
 
 /**
+ * Reuses IDs from the previous tree for nodes that still exist under the
+ * same parent with the same name. Without this, every valid keystroke in
+ * the text editor regenerates all IDs and silently orphans every entry in
+ * `model.comparisons` (all prior judgments would be lost).
+ *
+ * Matching is done per parent by name so that renames, insertions,
+ * deletions and reorderings only affect the nodes actually touched.
+ * The root always keeps its previous ID.
+ */
+export function applyStableIds(oldGoal: AHPNode, newGoal: AHPNode): AHPNode {
+  newGoal.id = oldGoal.id
+
+  const reuseIds = (oldNode: AHPNode, currentNode: AHPNode) => {
+    const oldChildren = oldNode.children ?? []
+    const used = new Set<string>()
+    for (const child of currentNode.children ?? []) {
+      const match = oldChildren.find((candidate) => !used.has(candidate.id) && candidate.name === child.name)
+      if (match) {
+        used.add(match.id)
+        child.id = match.id
+        reuseIds(match, child)
+      }
+    }
+  }
+  reuseIds(oldGoal, newGoal)
+
+  return newGoal
+}
+
+/**
  * Serializes an AHPNode tree into hyphen-based text DSL format.
  */
 export function serializeToTextDsl(goal: AHPNode): string {

@@ -93,11 +93,18 @@
           <!-- Import / Export Actions -->
           <div class="flex items-center gap-1.5 border-l border-slate-200 pl-3">
             <button
-              @click="exportJSON"
+              @click="showExportDialog = true"
               :title="t('actions.exportJson')"
               class="p-2 text-slate-600 hover:text-sky-700 hover:bg-slate-100 rounded-lg border border-slate-200 transition"
             >
               <Download class="w-4 h-4" />
+            </button>
+            <button
+              @click="showExcelDialog = true"
+              :title="t('actions.exportExcel')"
+              class="p-2 text-slate-600 hover:text-emerald-700 hover:bg-slate-100 rounded-lg border border-slate-200 transition"
+            >
+              <FileSpreadsheet class="w-4 h-4" />
             </button>
             <label
               :title="t('actions.importJson')"
@@ -228,13 +235,58 @@
         </div>
       </div>
     </main>
+
+    <!-- Named export dialog -->
+    <div v-if="showExportDialog" class="fixed inset-0 z-50 bg-slate-950/40 flex items-center justify-center p-4" @click.self="showExportDialog = false">
+      <form @submit.prevent="exportJSON" class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">{{ t('exportDialog.title') }}</h2>
+          <p class="mt-1 text-xs text-slate-500">{{ t('exportDialog.description') }}</p>
+        </div>
+        <input
+          v-model="exportFileName"
+          autofocus
+          required
+          class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+          :placeholder="t('exportDialog.placeholder')"
+        />
+        <div class="flex justify-end gap-3">
+          <button type="button" @click="showExportDialog = false" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">{{ t('exportDialog.cancel') }}</button>
+          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-lg">{{ t('exportDialog.confirm') }}</button>
+        </div>
+      </form>
+    </div>
+
+    <div v-if="showExcelDialog" class="fixed inset-0 z-50 bg-slate-950/40 flex items-center justify-center p-4" @click.self="showExcelDialog = false">
+      <form @submit.prevent="exportExcel" class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">{{ t('excelDialog.title') }}</h2>
+          <p class="mt-1 text-xs text-slate-500">{{ t('excelDialog.description') }}</p>
+        </div>
+        <div>
+          <label class="block mb-1.5 text-xs font-semibold text-slate-700">{{ t('excelDialog.fileName') }}</label>
+          <input v-model="excelFileName" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+        <div>
+          <label class="block mb-1.5 text-xs font-semibold text-slate-700">{{ t('excelDialog.reportLanguage') }}</label>
+          <select v-model="reportLanguage" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option v-for="language in reportLanguages" :key="language.code" :value="language.code">{{ language.name }}</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-3">
+          <button type="button" @click="showExcelDialog = false" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">{{ t('excelDialog.cancel') }}</button>
+          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">{{ t('excelDialog.confirm') }}</button>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import type { AHPModel, AHPNode } from './types/ahp'
+import type { AHPExportFile, AHPModel, AHPNode } from './types/ahp'
 import { calculateAHPMultilevel, getLeafNodes } from './ahp/ahp'
+import { exportAHPWorkbook, type ReportLanguage } from './excel/exportAHP'
 import { useI18n } from './i18n'
 
 import TreeEditor from './components/TreeEditor.vue'
@@ -251,11 +303,22 @@ import {
   SlidersHorizontal,
   Globe,
   CheckCircle2
+  , FileSpreadsheet
 } from 'lucide-vue-next'
 
 const { t, locale, setLocale } = useI18n()
 
 const showLangDropdown = ref(false)
+const showExportDialog = ref(false)
+const exportFileName = ref('ahp-decision')
+const showExcelDialog = ref(false)
+const excelFileName = ref('ahp-decision-report')
+const reportLanguage = ref<ReportLanguage>('en')
+const reportLanguages: { code: ReportLanguage; name: string }[] = [
+  { code: 'en', name: 'English' },
+  { code: 'zh', name: '简体中文' },
+  { code: 'ru', name: 'Русский' },
+]
 
 const availableLocales = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -358,13 +421,32 @@ const ahpOutput = computed(() => {
 
 // JSON Export / Import
 const exportJSON = () => {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(model.value, null, 2))
+  const name = exportFileName.value.trim() || 'ahp-decision'
+  const exportFile: AHPExportFile = {
+    format: 'ahp-decision-tool',
+    version: 2,
+    name,
+    exportedAt: new Date().toISOString(),
+    model: model.value,
+    results: ahpOutput.value,
+  }
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportFile, null, 2))
   const downloadAnchor = document.createElement('a')
   downloadAnchor.setAttribute("href", dataStr)
-  downloadAnchor.setAttribute("download", `ahp_model_${Date.now()}.json`)
+  downloadAnchor.setAttribute("download", `${name.replace(/[\\/:*?\"<>|]/g, '_')}.json`)
   document.body.appendChild(downloadAnchor)
   downloadAnchor.click()
   downloadAnchor.remove()
+  showExportDialog.value = false
+}
+
+const exportExcel = async () => {
+  try {
+    await exportAHPWorkbook(model.value, excelFileName.value, reportLanguage.value)
+    showExcelDialog.value = false
+  } catch (err) {
+    alert(t('excelDialog.exportError'))
+  }
 }
 
 const importJSON = (event: Event) => {
@@ -374,9 +456,12 @@ const importJSON = (event: Event) => {
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
-        const parsed = JSON.parse(e.target?.result as string) as AHPModel
-        if (parsed.goal) {
-          model.value = parsed
+        const parsed = JSON.parse(e.target?.result as string) as AHPModel | AHPExportFile
+        // Version 2 exports contain a result snapshot; legacy model-only JSON remains supported.
+        const importedModel = 'model' in parsed ? parsed.model : parsed
+        if (importedModel?.goal && Array.isArray(importedModel.alternatives) && importedModel.comparisons) {
+          model.value = importedModel
+          currentStep.value = 'results'
           alert(t('actions.importSuccess'))
         }
       } catch (err) {

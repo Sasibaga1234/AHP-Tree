@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { parseMatrixValue, formatMatrixValue } from './matrix'
 import { calculateMatrixResult, calculateAHPMultilevel } from './ahp'
+import { suggestConsistencyRepair } from './consistency'
 import type { AHPModel } from '../types/ahp'
 
 describe('AHP Matrix Utilities', () => {
@@ -91,5 +92,23 @@ describe('AHP Priority & Consistency Engine', () => {
     expect(output.finalRanking).toHaveLength(3)
     expect(output.finalRanking[0].id).toBe('a1') // Toyota highest score under Price
     expect(output.overallConsistency.isAllConsistent).toBe(true)
+  })
+})
+
+describe('Consistency repair suggestions', () => {
+  it('identifies a conflicting comparison and derives it from indirect paths', () => {
+    const suggestion = suggestConsistencyRepair(
+      [
+        [1, 3, 5],
+        [1 / 3, 1, 3],
+        [1 / 5, 1 / 3, 1],
+      ],
+      ['a', 'b', 'c']
+    )
+
+    expect(suggestion).not.toBeNull()
+    expect(suggestion?.supportingPaths).toBe(1)
+    expect(suggestion?.suggestedValue).toBeGreaterThan(0)
+    expect(suggestion?.suggestedValue).not.toBeCloseTo(suggestion!.currentValue, 6)
   })
 })

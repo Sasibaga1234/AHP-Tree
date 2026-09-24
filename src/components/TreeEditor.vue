@@ -91,30 +91,20 @@
               <Layers class="w-4 h-4 text-emerald-600" />
               <span>{{ t('tree.alternativesTitle') }}</span>
             </h3>
-            <span class="text-xs text-slate-400">
-              {{ t('tree.alternativesCount', { count: modelValue.alternatives.length }) }}
-            </span>
           </div>
 
           <p class="text-xs text-slate-500 mb-4">
             Configure candidates to be evaluated under every leaf criterion in the tree.
           </p>
 
-          <!-- Add Alternative Input -->
-          <div class="flex items-center gap-2 mb-4">
-            <input
-              v-model="newAltName"
-              @keyup.enter="addAlternative"
-              type="text"
-              :placeholder="t('tree.altPlaceholder')"
-              class="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
+          <!-- Add Alternative Button (creates Option N directly; rename inline below) -->
+          <div class="mb-4">
             <button
               @click="addAlternative"
               class="px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-1 shadow-sm"
             >
               <Plus class="w-3.5 h-3.5" />
-              {{ t('actions.add') }}
+              {{ t('actions.add') }} {{ t('tree.optionPrefix') }}
             </button>
           </div>
 
@@ -175,12 +165,21 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const editorMode = ref<'visual' | 'text'>('visual')
-const newAltName = ref('')
 
 // Update Goal hierarchy tree from Text DSL Editor
 const updateGoal = (newGoal: AHPNode) => {
   const model = JSON.parse(JSON.stringify(props.modelValue)) as AHPModel
   model.goal = newGoal
+  // Drop judgments that belong to deleted criteria; keep everything else by stable ID.
+  const validIds = new Set<string>()
+  const collectIds = (node: AHPNode) => {
+    validIds.add(node.id)
+    node.children?.forEach(collectIds)
+  }
+  collectIds(newGoal)
+  Object.keys(model.comparisons).forEach((key) => {
+    if (!validIds.has(key)) delete model.comparisons[key]
+  })
   emit('update:modelValue', model)
 }
 
@@ -250,18 +249,18 @@ const renameNode = (nodeId: string, newName: string) => {
   emit('update:modelValue', model)
 }
 
-// Manage Alternatives / 方案层
+// Manage Alternatives / 方案层 (one click creates Option N; rename inline in the list)
 const addAlternative = () => {
-  const name = newAltName.value.trim()
-  if (!name) return
-
   const model = JSON.parse(JSON.stringify(props.modelValue)) as AHPModel
   const newId = `alt_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 5)}`
+  const prefix = t('tree.optionPrefix')
+  const taken = new Set(model.alternatives.map((alt) => alt.name))
+  let number = model.alternatives.length + 1
+  while (taken.has(`${prefix} ${number}`)) number++
   model.alternatives.push({
     id: newId,
-    name,
+    name: `${prefix} ${number}`,
   })
-  newAltName.value = ''
   emit('update:modelValue', model)
 }
 

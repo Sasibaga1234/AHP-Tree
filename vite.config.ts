@@ -19,7 +19,8 @@ export default defineConfig({
         background_color: '#f8fafc',
         display: 'standalone',
         orientation: 'any',
-        start_url: '/',
+        start_url: '/AHP-Tree/',
+        scope: '/AHP-Tree/',
         icons: [
           {
             src: 'favicon.svg',
@@ -30,7 +31,9 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        navigateFallback: '/AHP-Tree/index.html',
+        navigateFallbackDenylist: [/^\/AHP-Tree\/assets\//]
       }
     })
   ],

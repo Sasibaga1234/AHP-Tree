@@ -25,6 +25,26 @@ export type MatrixResult = {
   isConsistent: boolean
 }
 
+/** A focused, explainable recommendation for resolving a matrix inconsistency. */
+export type ConsistencyRepairSuggestion = {
+  itemAId: string
+  itemBId: string
+  currentValue: number
+  suggestedValue: number
+  /** Number of indirect paths that support the suggestion. */
+  supportingPaths: number
+}
+
+export type AHPExportFile = {
+  format: 'ahp-decision-tool'
+  version: 2
+  name: string
+  exportedAt: string
+  model: AHPModel
+  /** A portable result snapshot; the app always recalculates it after import. */
+  results: AHPEngineOutput
+}
+
 export type RankingItem = {
   id: string
   name: string

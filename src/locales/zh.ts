@@ -37,6 +37,7 @@ export default {
   },
   actions: {
     exportJson: '导出 JSON',
+    exportExcel: '导出 Excel 报告',
     importJson: '导入 JSON',
     resetDefault: '重置为示例模板',
     nextComparison: '下一步：进入两两比较',
@@ -51,14 +52,29 @@ export default {
     importSuccess: 'AHP JSON 模型文件导入成功！',
     importError: '文件解析失败，请导入格式正确的 AHP JSON 文件。',
   },
+  exportDialog: {
+    title: '保存决策文件',
+    description: '文件会包含层级、全部判断值及计算结果快照；重新导入后将自动重新计算。',
+    placeholder: '请输入文件名称',
+    cancel: '取消',
+    confirm: '导出 JSON',
+  },
+  excelDialog: {
+    title: '导出 Excel 决策报告',
+    description: '将生成含层次模型、评分与公式计算过程、综合结果报告的三张工作表。',
+    fileName: '文件名称',
+    reportLanguage: '报告语言',
+    cancel: '取消',
+    confirm: '导出 Excel',
+    exportError: 'Excel 导出失败，请重试。',
+  },
   tree: {
     title: '目标层与准则层树状图 (Goal & Criteria Tree)',
     desc: '树根为目标层 (Goal)，子节点代表准则层与多级子准则层 (Criteria & Sub-criteria)。',
     doubleClickHint: '双击节点或点击编辑图标重命名',
     alternativesTitle: '方案层 (Alternatives)',
-    alternativesCount: '共 {count} 个候选方案',
-    altPlaceholder: '如：车型 A / 方案 1',
     altMinWarning: '⚠ AHP 两两比较方案层至少需要 2 个候选方案。',
+    optionPrefix: '方案',
   },
   comparison: {
     title: '进行两两比较打分',
@@ -83,6 +99,8 @@ export default {
     crPassed: '通过',
     crDeviation: '一致性较高偏离',
     crWarningText: '⚠ 逻辑一致性偏离提醒 (CR = {cr} > 0.10)：当前输入的判断矩阵可能存在逻辑矛盾，建议微调矩阵数值。',
+    repairSuggestion: '建议检查“{itemA} / {itemB}”：当前为 {current}，由其他比较关系推导为 {suggested}。',
+    applyRepair: '采用建议',
     minItemsWarning: '⚠ 该节点下的子项目少于 2 项，无需进行两两比较。',
   },
   results: {
